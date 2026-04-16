@@ -22,58 +22,202 @@ except Exception as err:
 # Fenêtre principale
 # ========================
 root = tk.Tk()
-root.title("Gestion de la Bibliotheque")
-root.geometry("1550x950")
-root.configure(bg="#f1f5f9")
+root.title("📚 Gestion de Bibliothèque")
+root.geometry("1500x900")
+root.minsize(1200, 700)
+root.configure(bg="#e5e7eb")  # gris moderne (fond global)
 
+# ========================
+# STYLE GLOBAL
+# ========================
 style = ttk.Style()
 style.theme_use("clam")
-style.configure("TButton", font=("Segoe UI", 10, "bold"), padding=9)
-style.configure("Treeview", font=("Segoe UI", 10), rowheight=34)
-style.configure("Treeview.Heading", font=("Segoe UI", 11, "bold"))
 
-style.configure("Success.TButton", background="#16a34a", foreground="white")
-style.configure("Accent.TButton", background="#2563eb", foreground="white")
-style.configure("Danger.TButton", background="#ef4444", foreground="white")
-style.configure("Info.TButton", background="#64748b", foreground="white")
+# Couleurs globales
+PRIMARY = "#2563eb"   # bleu
+SUCCESS = "#16a34a"   # vert
+DANGER  = "#dc2626"   # rouge
+GRAY    = "#6b7280"   # gris texte
+BG      = "#f9fafb"   # fond clair
+WHITE   = "#ffffff"
 
 # ========================
-# En-tête (Header)
+# STYLE BOUTONS PRO MAX
 # ========================
-header = tk.Frame(root, bg="#1e2937", height=80)
+
+PRIMARY = "#2563eb"   # Bleu
+SUCCESS = "#16a34a"   # Vert
+DANGER  = "#dc2626"   # Rouge
+WARNING = "#f59e0b"   # Orange
+INFO    = "#6b7280"   # Gris
+PURPLE  = "#7c3aed"   # Violet
+WHITE   = "#ffffff"
+
+style.configure("TButton",
+                font=("Segoe UI", 10, "bold"),
+                padding=10,
+                borderwidth=0,
+                focusthickness=0)
+
+# ===== Ajouter (VERT)
+style.configure("Success.TButton",
+                background=SUCCESS,
+                foreground=WHITE)
+style.map("Success.TButton",
+          background=[("active", "#15803d")])
+
+# ===== Modifier (BLEU)
+style.configure("Primary.TButton",
+                background=PRIMARY,
+                foreground=WHITE)
+style.map("Primary.TButton",
+          background=[("active", "#1d4ed8")])
+
+# ===== Supprimer (ROUGE)
+style.configure("Danger.TButton",
+                background=DANGER,
+                foreground=WHITE)
+style.map("Danger.TButton",
+          background=[("active", "#b91c1c")])
+
+# ===== Rechercher (GRIS)
+style.configure("Info.TButton",
+                background=INFO,
+                foreground=WHITE)
+style.map("Info.TButton",
+          background=[("active", "#4b5563")])
+
+# ===== Retour (VIOLET)
+style.configure("Purple.TButton",
+                background=PURPLE,
+                foreground=WHITE)
+style.map("Purple.TButton",
+          background=[("active", "#6d28d9")])
+
+# ========================
+# NOTEBOOK (ONGLETS)
+# ========================
+style.configure("TNotebook",
+                background=BG,
+                borderwidth=0)
+
+style.configure("TNotebook.Tab",
+                font=("Segoe UI", 10, "bold"),
+                padding=[15, 8],
+                background="#e2e8f0")
+
+style.map("TNotebook.Tab",
+          background=[("selected", WHITE)],
+          foreground=[("selected", PRIMARY)])
+# ========================
+# HEADER PRO
+# ========================
+header = tk.Frame(root, bg="#111827", height=70)  # gris très foncé premium
 header.pack(side=tk.TOP, fill="x")
-tk.Label(header, text="Gestion de la Bibliotheque", bg="#1e2937", fg="white", 
-         font=("Segoe UI", 20, "bold")).pack(side=tk.LEFT, padx=30, pady=20)
+
+header_container = tk.Frame(header, bg="#111827")
+header_container.pack(fill="both", expand=True, padx=25)
+
+# Logo + titre
+logo_frame = tk.Frame(header_container, bg="#111827")
+logo_frame.pack(side=tk.LEFT)
+
+tk.Label(logo_frame, text="📚", bg="#111827", fg="#3b82f6",
+         font=("Segoe UI Emoji", 20)).pack(side=tk.LEFT, padx=(0,10))
+
+tk.Label(logo_frame, text="GESTION BIBLIOTHÈQUE",
+         bg="#111827", fg="white",
+         font=("Segoe UI", 16, "bold")).pack(side=tk.LEFT)
+
+# Sous-titre
+tk.Label(header_container, text="Système de gestion intelligent",
+         bg="#111827", fg="#9ca3af",
+         font=("Segoe UI", 10)).pack(side=tk.LEFT, padx=20)
+
+# Partie droite (profil / date)
+right_frame = tk.Frame(header_container, bg="#111827")
+right_frame.pack(side=tk.RIGHT)
+
+from datetime import datetime
+tk.Label(right_frame,
+         text=datetime.now().strftime("%d %B %Y"),
+         bg="#111827", fg="#9ca3af",
+         font=("Segoe UI", 10)).pack(side=tk.RIGHT, padx=10)
+
+tk.Label(right_frame,
+         text="👤 Admin",
+         bg="#111827", fg="white",
+         font=("Segoe UI", 10, "bold")).pack(side=tk.RIGHT, padx=10)
 
 # ========================
-# Sidebar (Menu Principal) - Même couleur que l'en-tête
+# SIDEBAR PRO
 # ========================
-sidebar = tk.Frame(root, bg="#1e2937", width=280)
+sidebar = tk.Frame(root, bg="#1f2937", width=260)  # gris pro
 sidebar.pack(side=tk.LEFT, fill="y")
 sidebar.pack_propagate(False)
 
-tk.Label(sidebar, text="Menu Principal", bg="#1e2937", fg="#e2e8f0", 
-         font=("Segoe UI", 14, "bold")).pack(pady=30, padx=20, anchor="w")
+# Titre menu
+tk.Label(sidebar, text="NAVIGATION",
+         bg="#1f2937", fg="#9ca3af",
+         font=("Segoe UI", 10, "bold")).pack(pady=(25,10), padx=20, anchor="w")
 
+# Ligne séparation
+tk.Frame(sidebar, bg="#374151", height=1).pack(fill="x", padx=20, pady=10)
+
+# Fonction switch
 def switch_tab(index):
     notebook.select(index)
+    highlight_button(index)
 
+# Gestion sélection active
+active_btn = None
+def highlight_button(index):
+    global active_btn
+    for i, btn in enumerate(menu_buttons):
+        if i == index:
+            btn.configure(bg="#2563eb")  # bleu actif
+        else:
+            btn.configure(bg="#374151")
+
+# Hover effect
+def on_enter(e):
+    e.widget['bg'] = "#4b5563"
+
+def on_leave(e):
+    if e.widget != active_btn:
+        e.widget['bg'] = "#374151"
+
+# Menu items
 menu_items = [
-    ("🏠 Dashboard", 0),
-    ("📖 Livres", 1),
-    ("👥 Membres", 2),
-    ("🔄 Emprunts", 3)
+    ("🏠  Dashboard", 0),
+    ("📖  Livres", 1),
+    ("👥  Membres", 2),
+    ("🔄  Emprunts", 3)
 ]
 
-for text, idx in menu_items:
-    btn = tk.Button(sidebar, text=text, bg="#334155", fg="white", 
-                    font=("Segoe UI", 12), relief="flat", anchor="w", padx=25, pady=14,
-                    command=lambda i=idx: switch_tab(i))
-    btn.pack(fill="x", padx=15, pady=6)
+menu_buttons = []
 
-# ========================
-# Zone principale 
-# ========================
+for text, idx in menu_items:
+    btn = tk.Label(sidebar,
+                   text=text,
+                   bg="#374151",
+                   fg="white",
+                   font=("Segoe UI", 11),
+                   anchor="w",
+                   padx=20,
+                   pady=12,
+                   cursor="hand2")
+    
+    btn.pack(fill="x", padx=15, pady=5)
+
+    btn.bind("<Button-1>", lambda e, i=idx: switch_tab(i))
+    btn.bind("<Enter>", on_enter)
+    btn.bind("<Leave>", on_leave)
+
+    menu_buttons.append(btn)
+
+# Activer premier bouton
+highlight_button(0)
 # ========================
 # Zone principale 
 # ========================
@@ -87,44 +231,79 @@ notebook = ttk.Notebook(container)
 notebook.pack(expand=True, fill="both")
 
 # ========================
-# DASHBOARD
+# DASHBOARD PREMIUM
 # ========================
-dash_tab = ttk.Frame(notebook)
+dash_tab = tk.Frame(notebook, bg="#f3f4f6")
 notebook.add(dash_tab, text="  🏠 Dashboard  ")
 
-# Titre principal
-title_frame = tk.Frame(dash_tab, bg="#f1f5f9")
-title_frame.pack(fill="x", pady=(30, 10))
-tk.Label(title_frame, text="Tableau de Bord", font=("Segoe UI", 28, "bold"), 
-         bg="#f1f5f9", fg="#1e2937").pack()
+# ========================
+# HEADER DASHBOARD
+# ========================
+top_section = tk.Frame(dash_tab, bg="#f3f4f6")
+top_section.pack(fill="x", padx=30, pady=(25, 10))
 
-tk.Label(title_frame, text="Aperçu général de votre bibliothèque", 
-         font=("Segoe UI", 12), bg="#f1f5f9", fg="#64748b").pack()
+tk.Label(top_section,
+         text="Tableau de bord",
+         font=("Segoe UI", 26, "bold"),
+         bg="#f3f4f6",
+         fg="#111827").pack(anchor="w")
 
-# Frame des cartes
-cards_frame = tk.Frame(dash_tab, bg="#f1f5f9")
-cards_frame.pack(pady=30)
+tk.Label(top_section,
+         text="Suivi global des activités de la bibliothèque",
+         font=("Segoe UI", 11),
+         bg="#f3f4f6",
+         fg="#6b7280").pack(anchor="w", pady=(5, 0))
 
-def create_stat_card(title, value, color, icon="📊"):
-    # Carte avec effet moderne
-    card = tk.Frame(cards_frame, bg="white", relief="flat", bd=0)
-    card.pack(side=tk.LEFT, padx=18, pady=10, ipadx=30, ipady=25)
-    
-    # Ombre légère (effet relief)
-    card.configure(highlightbackground="#e2e8f0", highlightthickness=1)
-    
-    # Icône
-    tk.Label(card, text=icon, font=("Segoe UI", 28), bg="white").pack(pady=(10,5))
-    
-    # Valeur principale
-    tk.Label(card, text=value, font=("Segoe UI", 42, "bold"), fg=color).pack()
-    
-    # Titre
-    tk.Label(card, text=title, font=("Segoe UI", 12), fg="#475569", bg="white").pack(pady=5)
+# ========================
+# LIGNE SEPARATION
+# ========================
+tk.Frame(dash_tab, bg="#e5e7eb", height=1).pack(fill="x", padx=30, pady=10)
 
-# Chargement des statistiques
+# ========================
+# CARDS CONTAINER
+# ========================
+cards_container = tk.Frame(dash_tab, bg="#f3f4f6")
+cards_container.pack(padx=20, pady=20, fill="x")
+
+# ========================
+# CARD COMPONENT
+# ========================
+def create_stat_card(parent, title, value, color, icon):
+    card = tk.Frame(parent, bg="white", bd=0)
+    card.pack(side=tk.LEFT, expand=True, fill="both", padx=10, pady=10)
+
+    # effet bordure légère
+    card.configure(highlightbackground="#e5e7eb", highlightthickness=1)
+
+    inner = tk.Frame(card, bg="white")
+    inner.pack(padx=20, pady=20, fill="both", expand=True)
+
+    # ligne top (icone + titre)
+    top = tk.Frame(inner, bg="white")
+    top.pack(fill="x")
+
+    tk.Label(top, text=icon,
+             font=("Segoe UI Emoji", 20),
+             bg="white").pack(side=tk.LEFT)
+
+    tk.Label(top, text=title,
+             font=("Segoe UI", 11),
+             fg="#6b7280",
+             bg="white").pack(side=tk.LEFT, padx=10)
+
+    # valeur principale
+    tk.Label(inner,
+             text=value,
+             font=("Segoe UI", 32, "bold"),
+             fg=color,
+             bg="white").pack(anchor="w", pady=(15, 5))
+
+# ========================
+# CHARGEMENT DATA
+# ========================
 def load_dashboard():
-    if not conn: return
+    if not conn:
+        return
     try:
         cursor.execute("SELECT COUNT(*) FROM livres")
         total_livres = cursor.fetchone()[0]
@@ -137,35 +316,44 @@ def load_dashboard():
 
         today = date.today().strftime('%Y-%m-%d')
         cursor.execute("""
-            SELECT COUNT(*) FROM emprunts 
-            WHERE (retour_effectue = 'Non' OR retour_effectue IS NULL) 
+            SELECT COUNT(*) FROM emprunts
+            WHERE (retour_effectue = 'Non' OR retour_effectue IS NULL)
             AND date_retour < %s
         """, (today,))
         en_retard = cursor.fetchone()[0]
 
-        # Nettoyer les anciennes cartes
-        for widget in cards_frame.winfo_children():
+        # clear cards
+        for widget in cards_container.winfo_children():
             widget.destroy()
 
-        # Créer les nouvelles cartes
-        create_stat_card("Total Livres", str(total_livres), "#3b82f6", "📚")
-        create_stat_card("Membres Inscrits", str(total_membres), "#10b981", "👥")
-        create_stat_card("Emprunts en Cours", str(en_cours), "#f59e0b", "🔄")
-        create_stat_card("Emprunts en Retard", str(en_retard), "#ef4444", "⚠️")
+        # GRID propre (2 lignes)
+        row1 = tk.Frame(cards_container, bg="#f3f4f6")
+        row1.pack(fill="x")
+
+        row2 = tk.Frame(cards_container, bg="#f3f4f6")
+        row2.pack(fill="x")
+
+        create_stat_card(row1, "Livres", total_livres, "#3b82f6", "📚")
+        create_stat_card(row1, "Membres", total_membres, "#10b981", "👥")
+
+        create_stat_card(row2, "Emprunts actifs", en_cours, "#f59e0b", "🔄")
+        create_stat_card(row2, "Retards", en_retard, "#ef4444", "⚠️")
 
     except Exception as e:
-        print("Erreur lors du chargement du dashboard:", e)
+        print("Erreur dashboard:", e)
 
 load_dashboard()
 
-# Bouton Actualiser stylé
-refresh_btn = ttk.Button(dash_tab, text="🔄 Actualiser les statistiques", 
-                        style="Accent.TButton", command=load_dashboard)
-refresh_btn.pack(pady=30, ipadx=20, ipady=8)
+# ========================
+# ACTIONS DASHBOARD
+# ========================
+actions_frame = tk.Frame(dash_tab, bg="#f3f4f6")
+actions_frame.pack(pady=20)
 
-# ========================
-# Fin du Dashboard
-# ========================
+ttk.Button(actions_frame,
+           text="🔄 Actualiser",
+           style="Primary.TButton",
+           command=load_dashboard).pack(ipadx=20, ipady=8)
 
 # ========================
 # Utilitaires
@@ -176,10 +364,13 @@ def check_connexion():
         return False
     return True
 
-def valider_champs(entries, obligatoires):
+def valider_champs(entries, obligatoires, labels):
     for i, obligatoire in enumerate(obligatoires):
         if obligatoire and not entries[i].get().strip():
-            messagebox.showwarning("Obligatoire", f"Le champ '{labels[i]}' est obligatoire !")
+            messagebox.showwarning(
+                "Champ obligatoire",
+                f"Le champ '{labels[i]}' est obligatoire !"
+            )
             entries[i].focus()
             return False
     return True
@@ -229,55 +420,26 @@ def supprimer_item(table_name, tree):
         messagebox.showerror("Erreur", str(e))
 
 # ========================
-# ONGLET LIVRES
+# FONCTIONS LIVRES (OBLIGATOIRE AVANT UI)
 # ========================
-livres_tab = ttk.Frame(notebook)
-notebook.add(livres_tab, text="  📖 Livres  ")
-
-labels_livres = ["Titre :", "Auteur :", "Genre :", "ISBN :", "Année :", "Disponible :"]
-cols_livres = ("id", "titre", "auteur", "genre", "isbn", "annee", "disponible")
-
-livres_form = ttk.LabelFrame(livres_tab, text=" Formulaire Livres ", padding=15)
-livres_form.pack(fill="x", pady=10, padx=10)
-
-entries_livres = []
-for i, text in enumerate(labels_livres):
-    ttk.Label(livres_form, text=text).grid(row=i, column=0, sticky="e", padx=10, pady=8)
-    if "Disponible" in text:
-        ent = ttk.Combobox(livres_form, values=["Oui", "Non"], width=47, state="readonly")
-        ent.set("Oui")
-    else:
-        ent = ttk.Entry(livres_form, width=50)
-    ent.grid(row=i, column=1, padx=10, pady=8)
-    entries_livres.append(ent)
-
-btn_frame_l = ttk.Frame(livres_tab)
-btn_frame_l.pack(pady=10)
-
-ttk.Button(btn_frame_l, text="Ajouter", style="Success.TButton", command=lambda: ajouter_livre()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_l, text="Modifier", style="Accent.TButton", command=lambda: modifier_livre()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_l, text="Supprimer", style="Danger.TButton", command=lambda: supprimer_livre()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_l, text="Rechercher", style="Info.TButton", command=lambda: rechercher_livre()).pack(side=tk.LEFT, padx=6)
-
-tree_livres = ttk.Treeview(livres_tab, columns=cols_livres, show="headings")
-for col in cols_livres:
-    tree_livres.heading(col, text=col.capitalize())
-    tree_livres.column(col, width=130)
-tree_livres.pack(fill="both", expand=True, padx=10, pady=10)
 
 def ajouter_livre():
     if not check_connexion(): return
-    if not valider_champs(entries_livres, [True, True, False, False, False, False]): return
+    if not valider_champs(
+        entries_livres,[True, True, False, False, False, False],labels_livres
+        ):
+        return
     try:
         sql = "INSERT INTO livres (titre, auteur, genre, isbn, annee, disponible) VALUES (%s,%s,%s,%s,%s,%s)"
         cursor.execute(sql, [e.get().strip() for e in entries_livres])
         conn.commit()
         actualiser("livres", tree_livres)
         load_dashboard()
-        messagebox.showinfo("Succès", "Livre ajouté avec succès !")
+        messagebox.showinfo("Succès", "Livre ajouté !")
         for e in entries_livres: e.delete(0, tk.END)
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
+
 
 def modifier_livre():
     if not check_connexion(): return
@@ -291,42 +453,181 @@ def modifier_livre():
         load_dashboard()
         messagebox.showinfo("Succès", "Livre modifié !")
     except IndexError:
-        messagebox.showwarning("Sélection", "Veuillez sélectionner un livre")
+        messagebox.showwarning("Sélection", "Sélectionnez un livre")
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
 
+
 def supprimer_livre():
     if not check_connexion(): return
-    if not messagebox.askyesno("Confirmation", "Voulez-vous vraiment supprimer ce livre ?", icon="warning"):
+    if not messagebox.askyesno("Confirmation", "Supprimer ce livre ?"):
         return
     try:
         selected = tree_livres.selection()[0]
         livre_id = tree_livres.item(selected)['values'][0]
-        cursor.execute("SELECT COUNT(*) FROM emprunts WHERE id_livre = %s AND retour_effectue = 'Non'", (livre_id,))
-        if cursor.fetchone()[0] > 0:
-            messagebox.showwarning("Impossible", "Ce livre est actuellement emprunté. Impossible de le supprimer.")
-            return
-        cursor.execute("DELETE FROM livres WHERE id = %s", (livre_id,))
+        cursor.execute("DELETE FROM livres WHERE id=%s", (livre_id,))
         conn.commit()
         actualiser("livres", tree_livres)
         load_dashboard()
         messagebox.showinfo("Succès", "Livre supprimé !")
-    except IndexError:
-        messagebox.showwarning("Sélection", "Veuillez sélectionner un livre")
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
 
+
 def rechercher_livre():
     query = entries_livres[0].get().strip()
-    for row in tree_livres.get_children():
-        tree_livres.delete(row)
+    tree_livres.delete(*tree_livres.get_children())
+
     if query:
-        cursor.execute("SELECT * FROM livres WHERE titre LIKE %s OR auteur LIKE %s", 
+        cursor.execute("SELECT * FROM livres WHERE titre LIKE %s OR auteur LIKE %s",
                       ('%' + query + '%', '%' + query + '%'))
     else:
         cursor.execute("SELECT * FROM livres")
+
     for row in cursor.fetchall():
         tree_livres.insert("", tk.END, values=row)
+# ========================
+# ONGLET LIVRES (PRO UX CLEAN)
+# ========================
+livres_tab = ttk.Frame(notebook)
+notebook.add(livres_tab, text="📖 Livres")
+
+# ========================
+# CONTAINER PRINCIPAL
+# ========================
+main_livres = tk.Frame(livres_tab, bg="#f8fafc")
+main_livres.pack(fill="both", expand=True)
+
+# ========================
+# LEFT PANEL (FORM + ACTIONS)
+# ========================
+left_panel = tk.Frame(main_livres, bg="#ffffff", width=380)
+left_panel.pack(side="left", fill="y", padx=10, pady=10)
+left_panel.pack_propagate(False)
+
+tk.Label(
+    left_panel,
+    text="Gestion des Livres",
+    font=("Segoe UI", 16, "bold"),
+    bg="white",
+    fg="#111827"
+).pack(pady=15)
+
+# ========================
+# FORMULAIRE
+# ========================
+form = ttk.LabelFrame(left_panel, text=" Nouveau Livre ", padding=15)
+form.pack(fill="x", padx=10, pady=10)
+
+labels_livres = ["Titre", "Auteur", "Genre", "ISBN", "Année", "Disponible"]
+entries_livres = []
+
+for i, label in enumerate(labels_livres):
+    ttk.Label(form, text=label).grid(row=i, column=0, sticky="w", pady=5)
+
+    if label == "Disponible":
+        ent = ttk.Combobox(form, values=["Oui", "Non"], state="readonly", width=25)
+        ent.set("Oui")
+    else:
+        ent = ttk.Entry(form, width=28)
+
+    ent.grid(row=i, column=1, pady=5, padx=5)
+    entries_livres.append(ent)
+
+# ========================
+# ACTIONS BUTTONS (PRO SIZE)
+# ========================
+btn_frame = tk.Frame(left_panel, bg="white")
+btn_frame.pack(fill="x", pady=15)
+
+def style_btn(parent, text, color, cmd):
+    return tk.Button(
+        parent,
+        text=text,
+        command=cmd,
+        bg=color,
+        fg="white",
+        font=("Segoe UI", 11, "bold"),
+        relief="flat",
+        height=2,
+        cursor="hand2"
+    )
+
+style_btn(btn_frame, "➕ Ajouter", "#16a34a", ajouter_livre).pack(fill="x", pady=5)
+style_btn(btn_frame, "✏️ Modifier", "#2563eb", modifier_livre).pack(fill="x", pady=5)
+style_btn(btn_frame, "🗑 Supprimer", "#dc2626", supprimer_livre).pack(fill="x", pady=5)
+
+# ========================
+# RIGHT PANEL (SEARCH + TABLE)
+# ========================
+right_panel = tk.Frame(main_livres, bg="#f8fafc")
+right_panel.pack(side="right", fill="both", expand=True, padx=10, pady=10)
+
+# ========================
+# SEARCH BAR (TOP)
+# ========================
+top_bar = tk.Frame(right_panel, bg="white")
+top_bar.pack(fill="x", pady=10)
+
+search_entry = ttk.Entry(top_bar, width=40)
+search_entry.pack(side="left", padx=10, pady=10)
+
+def rechercher_livre():
+    query = search_entry.get().strip()
+    tree_livres.delete(*tree_livres.get_children())
+
+    if query:
+        cursor.execute("""
+            SELECT * FROM livres 
+            WHERE titre LIKE %s OR auteur LIKE %s
+        """, ('%' + query + '%', '%' + query + '%'))
+    else:
+        cursor.execute("SELECT * FROM livres")
+
+    for row in cursor.fetchall():
+        tree_livres.insert("", "end", values=row)
+
+tk.Button(
+    top_bar,
+    text="🔍 Rechercher",
+    command=rechercher_livre,
+    bg="#2563eb",
+    fg="white",
+    font=("Segoe UI", 10, "bold"),
+    relief="flat",
+    padx=15,
+    pady=8,
+    cursor="hand2"
+).pack(side="left", padx=5)
+
+tk.Button(
+    top_bar,
+    text="↻ Refresh",
+    command=lambda: actualiser("livres", tree_livres),
+    bg="#6b7280",
+    fg="white",
+    font=("Segoe UI", 10, "bold"),
+    relief="flat",
+    padx=15,
+    pady=8,
+    cursor="hand2"
+).pack(side="left")
+
+# ========================
+# TABLE (PRO STYLE)
+# ========================
+table_frame = tk.Frame(right_panel, bg="white")
+table_frame.pack(fill="both", expand=True)
+
+cols_livres = ("id", "titre", "auteur", "genre", "isbn", "annee", "disponible")
+
+tree_livres = ttk.Treeview(table_frame, columns=cols_livres, show="headings", height=18)
+
+for col in cols_livres:
+    tree_livres.heading(col, text=col.capitalize())
+    tree_livres.column(col, width=120, anchor="center")
+
+tree_livres.pack(fill="both", expand=True, padx=10, pady=10)
 
 # ========================
 # ONGLET MEMBRES
@@ -350,10 +651,12 @@ for i, text in enumerate(labels_membres):
 btn_frame_m = ttk.Frame(membres_tab)
 btn_frame_m.pack(pady=10)
 
-ttk.Button(btn_frame_m, text="Ajouter", style="Success.TButton", command=lambda: ajouter_membre()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_m, text="Modifier", style="Accent.TButton", command=lambda: modifier_membre()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_m, text="Supprimer", style="Danger.TButton", command=lambda: supprimer_membre()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_m, text="Rechercher", style="Info.TButton", command=lambda: rechercher_membre()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_m, text="➕ Ajouter", style="Success.TButton", command =lambda: ajouter_membre()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_m, text="✏️ Modifier", style="Primary.TButton", command =lambda: modifier_membre()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_m, text="🗑 Supprimer", style="Danger.TButton", command =lambda: supprimer_membre()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_m, text="🔍 Rechercher", style="Info.TButton", command =lambda: rechercher_membre()).pack(side=tk.LEFT, padx=6)
+for btn in btn_frame_m.winfo_children():
+    btn.configure(cursor="hand2")
 
 tree_membres = ttk.Treeview(membres_tab, columns=cols_membres, show="headings")
 for col in cols_membres:
@@ -451,16 +754,13 @@ for i, text in enumerate(labels_emprunts):
 btn_frame_e = ttk.Frame(emprunts_tab)
 btn_frame_e.pack(pady=10)
 
-ttk.Button(btn_frame_e, text="Ajouter Emprunt", style="Success.TButton", 
-           command=lambda: ajouter_emprunt()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_e, text="Retourner le Livre", style="Accent.TButton", 
-           command=lambda: retourner_livre()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_e, text="Modifier", style="Accent.TButton", 
-           command=lambda: modifier_emprunt()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_e, text="Supprimer", style="Danger.TButton", 
-           command=lambda: supprimer_emprunt()).pack(side=tk.LEFT, padx=6)
-ttk.Button(btn_frame_e, text="Rechercher", style="Info.TButton", 
-           command=lambda: rechercher_emprunt()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_e, text="➕ Emprunter", style="Success.TButton", command =lambda: ajouter_emprunt()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_e, text="📥 Retourner", style="Purple.TButton", command =lambda: retourner_livre()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_e, text="✏️ Modifier", style="Primary.TButton", command =lambda: modifier_emprunt()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_e, text="🗑 Supprimer", style="Danger.TButton", command =lambda: supprimer_emprunt()).pack(side=tk.LEFT, padx=6)
+ttk.Button(btn_frame_e, text="🔍 Rechercher", style="Info.TButton", command =lambda: rechercher_emprunt()).pack(side=tk.LEFT, padx=6)
+for btn in btn_frame_e.winfo_children():
+    btn.configure(cursor="hand2")
 
 tree_emprunts = ttk.Treeview(emprunts_tab, columns=cols_emprunts, show="headings")
 for col in cols_emprunts:
