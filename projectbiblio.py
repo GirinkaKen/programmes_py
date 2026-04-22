@@ -18,6 +18,55 @@ except Exception as err:
     conn = None
     cursor = None
 
+def show_login():
+    login_win = tk.Tk()
+    login_win.title("Connexion")
+    login_win.geometry("400x300")
+    login_win.configure(bg="#111827")
+    login_win.resizable(False, False)
+
+    tk.Label(login_win, text="🔐 Connexion",
+             font=("Segoe UI", 20, "bold"),
+             bg="#111827", fg="white").pack(pady=20)
+
+    frame = tk.Frame(login_win, bg="#111827")
+    frame.pack(pady=10)
+
+    tk.Label(frame, text="Username", bg="#111827", fg="white").grid(row=0, column=0, sticky="w")
+    entry_user = ttk.Entry(frame, width=30)
+    entry_user.grid(row=1, column=0, pady=5)
+
+    tk.Label(frame, text="Password", bg="#111827", fg="white").grid(row=2, column=0, sticky="w")
+    entry_pass = ttk.Entry(frame, width=30, show="*")
+    entry_pass.grid(row=3, column=0, pady=5)
+
+    def login():
+        username = entry_user.get().strip()
+        password = entry_pass.get().strip()
+
+        if not username or not password:
+            messagebox.showwarning("Erreur", "Tous les champs sont obligatoires")
+            return
+
+        cursor.execute("""
+            SELECT * FROM utilisateurs
+            WHERE username=%s AND password=SHA2(%s,256)
+        """, (username, password))
+
+        if cursor.fetchone():
+            login_win.destroy()
+            open_main_app()
+        else:
+            messagebox.showerror("Erreur", "Identifiants incorrects")
+
+    tk.Button(login_win, text="Se connecter",
+              command=login,
+              bg="#2563eb", fg="white",
+              font=("Segoe UI", 11, "bold"),
+              relief="flat").pack(pady=20)
+
+    login_win.mainloop()
+
 # ========================
 # Fenêtre principale
 # ========================
@@ -366,13 +415,16 @@ def check_connexion():
 
 def valider_champs(entries, obligatoires, labels):
     for i, obligatoire in enumerate(obligatoires):
-        if obligatoire and not entries[i].get().strip():
+        valeur = entries[i].get().strip()
+
+        if obligatoire and valeur == "":
             messagebox.showwarning(
                 "Champ obligatoire",
                 f"Le champ '{labels[i]}' est obligatoire !"
             )
             entries[i].focus()
             return False
+
     return True
 
 def actualiser(table_name, tree):
@@ -424,19 +476,51 @@ def supprimer_item(table_name, tree):
 # ========================
 
 def ajouter_livre():
-    if not check_connexion(): return
-    if not valider_champs(
-        entries_livres,[True, True, False, False, False, False],labels_livres
-        ):
+    if not check_connexion():
         return
+
+    if not valider_champs(
+        entries_livres,
+        [True, True, True, True, True, True],
+        labels_livres
+    ):
+        return
+
     try:
-        sql = "INSERT INTO livres (titre, auteur, genre, isbn, annee, disponible) VALUES (%s,%s,%s,%s,%s,%s)"
-        cursor.execute(sql, [e.get().strip() for e in entries_livres])
+        titre = entries_livres[0].get().strip()
+        auteur = entries_livres[1].get().strip()
+        isbn = entries_livres[3].get().strip()
+
+        # 🔍 Vérifier doublon
+        cursor.execute("""
+            SELECT COUNT(*) FROM livres
+            WHERE (titre=%s AND auteur=%s) OR isbn=%s
+        """, (titre, auteur, isbn if isbn else None))
+
+        if cursor.fetchone()[0] > 0:
+            messagebox.showwarning("Doublon", "Ce livre existe déjà !")
+            return
+
+        sql = """INSERT INTO livres
+                 (titre, auteur, genre, isbn, annee, disponible)
+                 VALUES (%s,%s,%s,%s,%s,%s)"""
+
+        valeurs = [e.get().strip() if e.get().strip() != "" else None for e in entries_livres]
+
+        cursor.execute(sql, valeurs)
         conn.commit()
+
         actualiser("livres", tree_livres)
         load_dashboard()
-        messagebox.showinfo("Succès", "Livre ajouté !")
-        for e in entries_livres: e.delete(0, tk.END)
+
+        messagebox.showinfo("Succès", "Livre ajouté avec succès !")
+
+        for e in entries_livres:
+            if hasattr(e, "set"):
+                e.set("")
+            else:
+                e.delete(0, tk.END)
+
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
 
@@ -665,19 +749,50 @@ for col in cols_membres:
 tree_membres.pack(fill="both", expand=True, padx=10, pady=10)
 
 def ajouter_membre():
-    if not check_connexion(): return
-    if not valider_champs(entries_membres, [True, True, False, False, False]): return
+    if not check_connexion():
+        return
+
+    if not valider_champs(
+        entries_membres,
+        [True, True, True, True, True],
+        labels_membres
+    ):
+        return
+
     try:
-        sql = "INSERT INTO membres (nom, prenom, email, telephone, date_inscription) VALUES (%s,%s,%s,%s,%s)"
-        date_ins = entries_membres[4].get() or datetime.today().strftime('%Y-%m-%d')
-        cursor.execute(sql, [entries_membres[0].get().strip(), entries_membres[1].get().strip(), 
-                             entries_membres[2].get().strip() or None, 
-                             entries_membres[3].get().strip() or None, date_ins])
+        nom = entries_membres[0].get().strip()
+        prenom = entries_membres[1].get().strip()
+        email = entries_membres[2].get().strip()
+        telephone = entries_membres[3].get().strip()
+        date_ins = entries_membres[4].get().strip()
+
+        # 🔍 Vérifier doublon email
+        cursor.execute(
+            "SELECT COUNT(*) FROM membres WHERE email=%s",
+            (email,)
+        )
+        if cursor.fetchone()[0] > 0:
+            messagebox.showwarning("Doublon", "Email déjà utilisé !")
+            return
+
+        # ✅ INSERT SANS AUCUN None
+        sql = """INSERT INTO membres
+                 (nom, prenom, email, telephone, date_inscription)
+                 VALUES (%s,%s,%s,%s,%s)"""
+
+        cursor.execute(sql, (nom, prenom, email, telephone, date_ins))
+
         conn.commit()
+
         actualiser("membres", tree_membres)
         load_dashboard()
-        messagebox.showinfo("Succès", "Membre ajouté !")
-        for e in entries_membres: e.delete(0, tk.END)
+
+        messagebox.showinfo("Succès", "Membre ajouté avec succès !")
+
+        # ✅ Nettoyage propre
+        for e in entries_membres:
+            e.delete(0, tk.END)
+
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
 
@@ -779,34 +894,79 @@ def charger_listes_emprunts():
         pass
 
 def ajouter_emprunt():
-    if not check_connexion(): return
-    if not valider_champs(entries_emprunts, [True, True, False, True, False]): return
+    if not check_connexion():
+        return
+
+    # ✅ Tous les champs obligatoires
+    if not valider_champs(
+        entries_emprunts,
+        [True, True, True, True, True],
+        labels_emprunts
+    ):
+        return
+
     try:
-        membre_str = entries_emprunts[0].get()
-        livre_str = entries_emprunts[1].get()
-        id_membre = membre_str.split(" - ")[0] if membre_str else None
-        id_livre = livre_str.split(" - ")[0] if livre_str else None
+        membre_str = entries_emprunts[0].get().strip()
+        livre_str = entries_emprunts[1].get().strip()
+        date_emprunt = entries_emprunts[2].get().strip()
+        date_retour = entries_emprunts[3].get().strip()
+        retour = entries_emprunts[4].get().strip()
 
-        date_retour_prevue = (datetime.today() + timedelta(days=14)).strftime('%Y-%m-%d')
+        # 🔍 Extraction IDs
+        id_membre = membre_str.split(" - ")[0]
+        id_livre = livre_str.split(" - ")[0]
 
-        sql = """INSERT INTO emprunts (id_membre, id_livre, date_emprunt, date_retour, retour_effectue) 
-                 VALUES (%s, %s, %s, %s, %s)"""
-        cursor.execute(sql, (id_membre, id_livre, datetime.today().strftime('%Y-%m-%d'), 
-                             date_retour_prevue, "Non"))
-        
-        cursor.execute("UPDATE livres SET disponible = 'Non' WHERE id = %s", (id_livre,))
-        
+        # 🔍 Vérifier si déjà emprunté
+        cursor.execute("""
+            SELECT COUNT(*) FROM emprunts
+            WHERE id_livre=%s AND retour_effectue='Non'
+        """, (id_livre,))
+
+        if cursor.fetchone()[0] > 0:
+            messagebox.showwarning("Indisponible", "Ce livre est déjà emprunté !")
+            return
+
+        # ❌ Vérifier cohérence dates
+        if date_retour < date_emprunt:
+            messagebox.showwarning("Erreur", "Date retour invalide !")
+            return
+
+        # ✅ INSERT propre
+        sql = """INSERT INTO emprunts
+                 (id_membre, id_livre, date_emprunt, date_retour, retour_effectue)
+                 VALUES (%s,%s,%s,%s,%s)"""
+
+        cursor.execute(sql, (
+            id_membre,
+            id_livre,
+            date_emprunt,
+            date_retour,
+            retour
+        ))
+
+        # 🔄 Mise à jour disponibilité
+        if retour == "Non":
+            cursor.execute("UPDATE livres SET disponible='Non' WHERE id=%s", (id_livre,))
+        else:
+            cursor.execute("UPDATE livres SET disponible='Oui' WHERE id=%s", (id_livre,))
+
         conn.commit()
+
         actualiser("emprunts", tree_emprunts)
         actualiser("livres", tree_livres)
         load_dashboard()
-        messagebox.showinfo("Succès", "Emprunt enregistré ! Le livre est maintenant indisponible.")
-        for e in entries_emprunts: 
-            if hasattr(e, 'set'): e.set('')
-            else: e.delete(0, tk.END)
+
+        messagebox.showinfo("Succès", "Emprunt enregistré avec succès !")
+
+        # nettoyage
+        for e in entries_emprunts:
+            if hasattr(e, "set"):
+                e.set("")
+            else:
+                e.delete(0, tk.END)
+
     except Exception as e:
         messagebox.showerror("Erreur", str(e))
-
 def retourner_livre():
     if not check_connexion(): return
     try:
